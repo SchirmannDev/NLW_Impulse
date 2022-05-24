@@ -1,7 +1,9 @@
 import { ArrowLeft, Camera } from "phosphor-react";
 import { FormEvent, useState } from "react";
 import { FeedbackType, feedbackTypes } from "..";
+import { api } from "../../../lib/api";
 import { CloseButton } from "../../CloseButton";
+import { Loading } from "../../Loading";
 import { ScreenShotButton } from "../ScreenShotButton";
 
 interface FeedBackContentStepsProps {
@@ -16,13 +18,23 @@ export function FeedBackContentSteps({ feedbackType, onFeedbackRestartRequest, o
 
   const [coment, setComent] = useState("");
   const [screenShot, setScreenShot] = useState<string | null>(null)
+  const [isSendingFeedback, setIsSendingFeedback] = useState(false);
 
   const feedbackTypeInfo = feedbackTypes[feedbackType];
 
-  function handleSubmitFeedBack(event: FormEvent) {
+  async function handleSubmitFeedBack(event: FormEvent) {
     event.preventDefault();
-    console.log({ coment, screenShot });
 
+    setIsSendingFeedback(true);
+    //console.log({ coment, screenShot });
+
+    await api.post('/feedbacks', {
+      type: feedbackType,
+      coment,
+      screenShot
+    });
+
+    setIsSendingFeedback(false);
     onFeedbackSent();
   }
 
@@ -55,11 +67,11 @@ export function FeedBackContentSteps({ feedbackType, onFeedbackRestartRequest, o
             onScreenShotToke={setScreenShot}
           />
           <button
-            disabled={coment.length === 0}
+            disabled={coment.length === 0 || isSendingFeedback}
             type="submit"
             className="p-2 bg-brand-500 rounded-md border-transparent flex-1 flex justify-center items-center text-sm hover:bg-brand-300  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-900 focus:ring-brand-500 transition-colors disabled:opacity-50 disabled:hover:bg-brand-500"
           >
-            Enviar Feedback
+            {isSendingFeedback ? <Loading /> : 'Enviar Feedback'}
           </button>
         </footer>
       </form>
